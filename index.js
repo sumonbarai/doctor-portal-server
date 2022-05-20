@@ -40,6 +40,7 @@ async function run() {
     const serviceCollection = client.db("doctorPortal").collection("service");
     const bookingCollection = client.db("doctorPortal").collection("bookings");
     const userCollection = client.db("doctorPortal").collection("users");
+    const doctorCollection = client.db("doctorPortal").collection("doctors");
     // isAdmin user
     app.get("/admin/:email", async (req, res) => {
       const email = req.params.email;
@@ -51,6 +52,13 @@ async function run() {
     app.get("/service", async (req, res) => {
       const query = {};
       const cursor = serviceCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    // get all service in data base
+    app.get("/serviceSociality", async (req, res) => {
+      const query = {};
+      const cursor = serviceCollection.find(query).project({ name: 1 });
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -128,6 +136,27 @@ async function run() {
       } else {
         res.status(403).send({ message: "forbidden" });
       }
+    });
+
+    // get all doctor data
+    app.get("/doctor", JWTverify, async (req, res) => {
+      const query = {};
+      const cursor = doctorCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    // post added doctor data
+    app.post("/doctor", JWTverify, async (req, res) => {
+      const doctor = req.body;
+      const result = await doctorCollection.insertOne(doctor);
+      res.send(result);
+    });
+    // delete a doctor
+    app.delete("/doctor/:email", JWTverify, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await doctorCollection.deleteOne(query);
+      res.send(result);
     });
   } finally {
     // await client.close();
